@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 #function to load the environment variables
 load_dotenv()
 
+#establishing the connection to the database
 connection=psycopg.connect(
     host=os.getenv("POSTGRES_HOST"),
     port=os.getenv("POSTGRES_PORT"),
@@ -16,6 +17,7 @@ connection=psycopg.connect(
 
 cursor=connection.cursor()
 
+#Checking the connection to current database
 cursor.execute("SELECT current_database();")
 
 print("Connected to database:", cursor.fetchone()[0])
