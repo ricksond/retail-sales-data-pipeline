@@ -1,0 +1,49 @@
+version: 2
+
+models:
+  - name: fct_weekly_sales
+    description: >
+      Business-ready weekly retail sales fact table used
+      for analytical reporting and downstream machine learning.
+
+    columns:
+      - name: date_key
+        description: "Surrogate key for the date dimension."
+        data_tests:
+          - not_null
+          
+      - name: store_id
+        description: "Unique store identifier."
+        data_tests:
+          - not_null
+
+      - name: sales_date
+        description: "Week associated with the sales record."
+        data_tests:
+          - not_null
+
+      - name: weekly_sales
+        description: "Weekly sales amount."
+        data_tests:
+          - not_null
+
+      - name: holiday_flag
+        description: "Indicates whether the week is a holiday week."
+        data_tests:
+          - not_null
+
+      - name: temperature
+        description: "Temperature during the week."
+        data_tests:
+          - not_null
+
+      - name: fuel_price
+        description: "Fuel price during the week."
+        data_tests:
+          - not_null
+
+      - name: cpi
+        description: "Consumer Price Index."
+
+      - name: unemployment
+        description: "Unemployment rate."
