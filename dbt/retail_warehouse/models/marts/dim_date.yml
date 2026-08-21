@@ -1,0 +1,48 @@
+version: 2
+
+models:
+  - name: dim_date
+    description: >
+      Date dimension providing calendar attributes for
+      weekly retail sales analysis.
+
+    columns:
+
+      - name: date_key
+        description: "Integer representation of the calendar date."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: full_date
+        description: "Calendar date."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: year
+        description: "Calendar year."
+
+      - name: quarter
+        description: "Calendar quarter."
+
+      - name: month
+        description: "Calendar month."
+
+      - name: week_of_year
+        description: "Week number of the year."
+
+      - name: day_of_month
+        description: "Day of the month."
+
+      - name: day_of_week
+        description: "Day of week where Sunday is 0 and Saturday is 6."
+
+      - name: month_name
+        description: "Calendar month name."
+
+      - name: day_name
+        description: "Calendar day name."
+
+      - name: is_weekend
+        description: "Indicates whether the date falls on a weekend."
