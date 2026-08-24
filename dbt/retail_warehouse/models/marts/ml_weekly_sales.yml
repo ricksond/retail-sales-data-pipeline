@@ -1,0 +1,65 @@
+version: 2
+
+models:
+  - name: ml_weekly_sales
+    description: >
+      Machine learning feature dataset derived from the Gold sales
+      fact table and date dimension. Contains historical sales,
+      calendar, economic and lag-based features for weekly sales
+      prediction.
+
+    columns:
+
+      - name: store_id
+        description: "Unique store identifier."
+        data_tests:
+          - not_null
+
+      - name: sales_date
+        description: "Date associated with the weekly sales record."
+        data_tests:
+          - not_null
+
+      - name: weekly_sales
+        description: "Target variable representing weekly sales."
+        data_tests:
+          - not_null
+
+      - name: holiday_flag
+        description: "Indicates whether the week is a holiday week."
+
+      - name: temperature
+        description: "Temperature during the week."
+
+      - name: fuel_price
+        description: "Fuel price during the week."
+
+      - name: cpi
+        description: "Consumer Price Index."
+
+      - name: unemployment
+        description: "Unemployment rate."
+
+      - name: year
+        description: "Calendar year."
+
+      - name: quarter
+        description: "Calendar quarter."
+
+      - name: month
+        description: "Calendar month."
+
+      - name: week_of_year
+        description: "Week number of the year."
+
+      - name: previous_weekly_sales
+        description: "Weekly sales from the previous week."
+
+      - name: previous_2_weekly_sales
+        description: "Weekly sales from two weeks prior."
+
+      - name: previous_4_weekly_sales
+        description: "Weekly sales from four weeks prior."
+
+      - name: previous_year_weekly_sales
+        description: "Weekly sales from twelve weeks prior."
