@@ -1,5 +1,6 @@
 from sklearn.pipeline import Pipeline
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import RandomForestRegressor,GradientBoostingRegressor
+from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, r2_score, mean_squared_error
 
 from python.ml.preprocessing import (
@@ -8,23 +9,27 @@ from python.ml.preprocessing import (
     prepare_features
 )
 
-def create_reg_baseline_pipeline():
+def create_model_pipeline(model):
     """
-    Create Baseline ML model Pipeline Reuseable Function
+    Create Reusable ML model Pipeline for any Regressor Model
     """
 
-    return Pipeline(
-        steps=[
-            (
-                "model",
-                RandomForestRegressor(
-                    n_estimators=100,
-                    n_jobs=-1,
-                    random_state=42
-                )
-            )
-        ]
-    )
+    return Pipeline([
+        ("model",model)
+    ])
+
+
+def get_models():
+    """
+    Return a dictionary of available models for training
+    """
+
+    return {
+
+        "LinearRegression": LinearRegression(),
+        "RandomForestRegressor": RandomForestRegressor(n_estimators=100, n_jobs=-1, random_state=42),
+        "GradientBoostingRegressor": GradientBoostingRegressor(n_estimators=100, random_state=42)
+    }
 
     
 def train_model(model_pipeline,X_train,y_train):
@@ -43,6 +48,7 @@ def train_model(model_pipeline,X_train,y_train):
     except Exception as e:
         print(f"Issue Training Model : {e}")
         raise
+
 
 def evaluate_model(model_pipeline,X,y,dataset_name):
     """
@@ -97,16 +103,38 @@ def evaluate_naive_baseline(df):
         "r2": r2,
     }
 
-def run_baseline_model():
+def compare_models(models,X_train,y_train,X_validation,y_validation):
     """
-    Executing the Baseline Model Training and Evaluation
+    Train and Evaluate Multiple Models and Compare their Performance
+    """
+    results={}
+
+    for model_name, model in models.items():
+
+        print(f"\n Training Model: {model_name}")
+
+        pipeline=create_model_pipeline(model)
+
+        trained_pipeline=train_model(pipeline,X_train,y_train)
+
+        metrics=evaluate_model(
+            trained_pipeline,
+            X_validation,
+            y_validation,
+            model_name
+        )
+
+        results[model_name]=metrics
+        
+    return results
+
+def run_model_comparison():
+    """
+    Executing the Model Comparison and Evaluation
     """
     df= preprocess_data()
 
     train_df,validation_df,test_df=split_data(df)
-
-    naive_metrics=evaluate_naive_baseline(validation_df)
-
 
     (
         X_train,
@@ -117,30 +145,26 @@ def run_baseline_model():
         y_test
     ) = prepare_features(train_df,validation_df,test_df)
 
-    model_pipeline=create_reg_baseline_pipeline()
+    models=get_models()
 
-    trained_model=train_model(
-        model_pipeline,
+    results=compare_models(
+        models,
         X_train,
-        y_train
-    )
-
-    validation_metrics=evaluate_model(
-        trained_model,
+        y_train,
         X_validation,
-        y_validation,
-        "Validation"
+        y_validation
     )
 
-    return {
-        "trained_model":trained_model,
-        "validation_metrics":validation_metrics,
-        "Naive_metrics":naive_metrics,
-        "X_test":X_test,
-        "y_test":y_test
-    }
+    print("\n Model Comparison Results:")
+
+    for model_name, metrics in results.items():
+        print(f"\n {model_name}:")
+        print(f" MAE:  {metrics['mae']:,.2f}")
+        print(f" RMSE: {metrics['rmse']:,.2f}")
+        print(f" R²:   {metrics['r2']:.4f}")
+    return results
 
 
 
 if __name__ == "__main__":
-    run_baseline_model()
+   run_model_comparison()
