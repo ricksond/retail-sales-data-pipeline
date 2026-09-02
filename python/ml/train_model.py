@@ -4,6 +4,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, r2_score, mean_squared_error
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 from sklearn.model_selection import RandomizedSearchCV, TimeSeriesSplit
 
 from python.ml.preprocessing import (
@@ -196,13 +197,30 @@ def tune_rf_model():
         "model__max_features":["sqrt","log2",1.0]
     }
 
-    time_split=TimeSeriesSplit(n_splits=5)
+    # Create Time Based Cross Validation split with respect to sales_date
+    unique_train_dates=train_df["sales_date"].sort_values().unique()
+
+    time_splits=TimeSeriesSplit(n_splits=5)
+
+    cv_splits=[]
+
+    for train_date_index, val_date_index in time_splits.split(unique_train_dates):
+        train_dates=unique_train_dates[train_date_index]
+        val_dates=unique_train_dates[val_date_index]
+
+        train_indices=np.flatnonzero(train_df["sales_date"].isin(train_dates).to_numpy())
+
+        val_indices=np.flatnonzero(train_df["sales_date"].isin(val_dates).to_numpy())
+
+        cv_splits.append((train_indices,val_indices))
+
+   # time_split=TimeSeriesSplit(n_splits=5)
 
     search=RandomizedSearchCV(
         pipeline,
         param_distributions=param_grid,
         n_iter=30,
-        cv=time_split,
+        cv=cv_splits,
         scoring="neg_mean_absolute_error",
         n_jobs=-1,
         random_state=42,
@@ -282,6 +300,24 @@ def tune_rf_model():
     plt.savefig("docs/eda/residuals_over_time.png")
     plt.close()
 
+    # Final Model Evaluation with Testing Data
+    y_test_pred=search.predict(X_test)
+
+    test_mae=mean_absolute_error(y_test,y_test_pred)
+
+    test_rmse=mean_squared_error(y_test,y_test_pred) ** 0.5
+
+    test_r2=r2_score(y_test,y_test_pred)
+
+    #Naive Test Baseline Evaluation
+    naive_test_evaluation=X_test["previous_weekly_sales"].copy()
+
+    naive_test_mae=mean_absolute_error(y_test,naive_test_evaluation)
+
+    naive_test_rmse=mean_squared_error(y_test,naive_test_evaluation) ** 0.5
+
+    naive_test_r2=r2_score(y_test,naive_test_evaluation)
+
 
 
 
@@ -313,12 +349,28 @@ def tune_rf_model():
 
     print("\n Actual vs Predicted , Residuals and Residuals Over Time Plots saved in docs/eda folder.")
 
+    print("\nFinal Test Evaluation:")
+    print(f"Test MAE:  {test_mae:,.2f}")
+    print(f"Test RMSE: {test_rmse:,.2f}")
+    print(f"Test R²:   {test_r2:.4f}")
+
+    print("\nNaive Test Baseline:")
+    print(f"Test MAE:  {naive_test_mae:,.2f}")
+    print(f"Test RMSE: {naive_test_rmse:,.2f}")
+    print(f"Test R²:   {naive_test_r2:.4f}")
+
     return (search.best_estimator_, 
             search.best_params_, 
             search.best_score_,
             val_mae,
             val_rmse,
             val_r2, 
+            test_mae,
+            test_rmse,
+            test_r2,
+            naive_test_mae,
+            naive_test_rmse,
+            naive_test_r2,
             feature_importance,
              predictions_result,
              residuals)

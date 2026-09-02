@@ -19,7 +19,7 @@ def preprocess_data():
 
     #Sort Dataset by store_id and Sales_date
     df=df.sort_values(
-        by=['store_id','sales_date']
+        by=['sales_date','store_id']
     ).reset_index(drop=True)
 
     print("\n Datetime Conversion And Sorting Completed Successfully")
