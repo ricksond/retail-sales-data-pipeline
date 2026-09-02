@@ -2,7 +2,8 @@ from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestRegressor,GradientBoostingRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, r2_score, mean_squared_error
-
+import pandas as pd
+import matplotlib.pyplot as plt
 from sklearn.model_selection import RandomizedSearchCV, TimeSeriesSplit
 
 from python.ml.preprocessing import (
@@ -219,6 +220,71 @@ def tune_rf_model():
 
     val_r2=r2_score(y_validation,y_pred)
 
+    # Tuned model evalaution and error analysis
+    tuned_model_features=search.best_estimator_.named_steps["model"].feature_importances_
+
+    features=pd.DataFrame({
+        "feature":X_train.columns,
+        "importance":tuned_model_features
+    })
+
+    feature_importance=features.sort_values(by="importance",ascending=False)
+
+
+    # Residual Analysis
+    residuals=y_validation-y_pred
+
+    # Actual vs Predicted
+
+    predictions_result=pd.DataFrame({
+        "actual": y_validation.values,
+        "predicted": y_pred,
+        "residuals": residuals.values
+    })
+
+    predictions_result["absolute_error"]=predictions_result["residuals"].abs()
+
+
+    # Plots to show predictions vs actual and residuals to better determine model performance
+
+    # 1. Actual vs Predicted Plot
+    plt.figure(figsize=(8,6))
+    plt.scatter(predictions_result["actual"],predictions_result["predicted"],alpha=0.5)
+    plt.xlabel("Actual Weekly Sales")
+    plt.ylabel("Predicted Weekly Sales")
+    plt.title("Actual vs Predicted Weekly Sales")
+    plt.plot([predictions_result["actual"].min(), predictions_result["actual"].max()],
+             [predictions_result["actual"].min(), predictions_result["actual"].max()],linestyle='--')
+    plt.tight_layout()
+    plt.savefig("docs/eda/actual_vs_predicted.png")
+    plt.close()
+
+    # 2. Residuals Plot
+    # Residual Distribution
+    plt.figure(figsize=(8, 6))
+    plt.hist(predictions_result["residuals"], bins=30)
+    plt.xlabel("Residual")
+    plt.ylabel("Frequency")
+    plt.title("Validation Residual Distribution")
+    plt.tight_layout()
+    plt.savefig("docs/eda/residual_distribution.png")
+    plt.close()
+
+    # Residuals Over Time
+    plt.figure(figsize=(12, 6))
+    plt.scatter(validation_df["sales_date"], predictions_result["residuals"], alpha=0.5)
+    plt.axhline(y=0, color='r', linestyle='--')
+    plt.xlabel("Sales Date")
+    plt.ylabel("Residuals")
+    plt.title("Validation Residuals Over Time")
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.savefig("docs/eda/residuals_over_time.png")
+    plt.close()
+
+
+
+
     print("\nBest Parameters:")
     print(search.best_params_)
 
@@ -228,7 +294,34 @@ def tune_rf_model():
     print(f"\nValidation RMSE: {val_rmse:,.2f}")
     print(f"\nValidation R²: {val_r2:.4f}")
 
-    return search.best_estimator_, search.best_params_, search.best_score_,val_mae,val_rmse,val_r2
+    print(f"\nFeature Importance:")
+    print(feature_importance)
+
+    print("\nResidual Analysis:")
+    print(f"Mean Residual: {residuals.mean():,.2f}")
+    print(f"Minimum Residual: {residuals.min():,.2f}")
+    print(f"Maximum Residual: {residuals.max():,.2f}")
+    print(f"Residual Std Dev: {residuals.std():,.2f}")
+
+    print("\nLargest Prediction Errors:")
+    print(
+        predictions_result
+        .sort_values("absolute_error", ascending=False)
+        .head(10)
+        .to_string(index=False)
+    )
+
+    print("\n Actual vs Predicted , Residuals and Residuals Over Time Plots saved in docs/eda folder.")
+
+    return (search.best_estimator_, 
+            search.best_params_, 
+            search.best_score_,
+            val_mae,
+            val_rmse,
+            val_r2, 
+            feature_importance,
+             predictions_result,
+             residuals)
 
 
 if __name__ == "__main__":
