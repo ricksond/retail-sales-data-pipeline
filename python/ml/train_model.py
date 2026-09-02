@@ -3,6 +3,8 @@ from sklearn.ensemble import RandomForestRegressor,GradientBoostingRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, r2_score, mean_squared_error
 
+from sklearn.model_selection import RandomizedSearchCV, TimeSeriesSplit
+
 from python.ml.preprocessing import (
     preprocess_data,
     split_data,
@@ -164,7 +166,70 @@ def run_model_comparison():
         print(f" R²:   {metrics['r2']:.4f}")
     return results
 
+def tune_rf_model():
+    """
+    Tune Random Forest Model Hyperparameters and apply cross validation to train
+    """
+    df=preprocess_data()
+
+    train_df,validation_df,test_df=split_data(df)
+
+    (
+        X_train,
+        y_train,
+        X_validation,
+        y_validation,
+        X_test,
+        y_test
+    ) = prepare_features(train_df,validation_df,test_df)
+
+    model=RandomForestRegressor(n_estimators=100, n_jobs=-1, random_state=42)
+
+    pipeline=create_model_pipeline(model)
+
+    param_grid={
+        "model__n_estimators":[100,200,300],
+        "model__max_depth":[10,20,30],
+        "model__min_samples_split":[2,5,10],
+        "model__min_samples_leaf":[1,2,4],
+        "model__max_features":["sqrt","log2",1.0]
+    }
+
+    time_split=TimeSeriesSplit(n_splits=5)
+
+    search=RandomizedSearchCV(
+        pipeline,
+        param_distributions=param_grid,
+        n_iter=30,
+        cv=time_split,
+        scoring="neg_mean_absolute_error",
+        n_jobs=-1,
+        random_state=42,
+        verbose=1
+    )
+
+    search.fit(X_train,y_train)
+
+    #Predict on Validation Set
+    y_pred=search.predict(X_validation)
+
+    val_mae=mean_absolute_error(y_validation,y_pred)
+
+    val_rmse=mean_squared_error(y_validation,y_pred) ** 0.5
+
+    val_r2=r2_score(y_validation,y_pred)
+
+    print("\nBest Parameters:")
+    print(search.best_params_)
+
+    print(f"\nBest CV MAE: {-search.best_score_:,.2f}")
+
+    print(f"\nValidation MAE: {val_mae:,.2f}")
+    print(f"\nValidation RMSE: {val_rmse:,.2f}")
+    print(f"\nValidation R²: {val_r2:.4f}")
+
+    return search.best_estimator_, search.best_params_, search.best_score_,val_mae,val_rmse,val_r2
 
 
 if __name__ == "__main__":
-   run_model_comparison()
+   tune_rf_model()
