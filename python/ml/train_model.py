@@ -5,6 +5,7 @@ from sklearn.metrics import mean_absolute_error, r2_score, mean_squared_error
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+import joblib
 from sklearn.model_selection import RandomizedSearchCV, TimeSeriesSplit
 
 from python.ml.preprocessing import (
@@ -229,6 +230,10 @@ def tune_rf_model():
 
     search.fit(X_train,y_train)
 
+    #Saving the trained model
+    model_path="python/ml/artifacts/random_forest_model.joblib"
+    joblib.dump(search.best_estimator_,model_path)
+
     #Predict on Validation Set
     y_pred=search.predict(X_validation)
 
@@ -358,6 +363,9 @@ def tune_rf_model():
     print(f"Test MAE:  {naive_test_mae:,.2f}")
     print(f"Test RMSE: {naive_test_rmse:,.2f}")
     print(f"Test R²:   {naive_test_r2:.4f}")
+
+
+    print(f"\nBest Model Saved Successfully to: {model_path}")
 
     return (search.best_estimator_, 
             search.best_params_, 
