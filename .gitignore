@@ -221,3 +221,6 @@ __marimo__/
 
 # airflow files
 airflow.cfg
+
+#joblib files or artifacts folder
+python/ml/artifacts/*.joblib
