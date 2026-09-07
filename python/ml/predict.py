@@ -6,6 +6,8 @@ from python.ml.preprocessing import (
     prepare_features
 )
 
+from python.utils.database import get_connection 
+
 MODEL_PATH="python/ml/artifacts/random_forest_model.joblib"
 
 def load_model():
@@ -22,16 +24,13 @@ def load_model():
         return model
     except Exception as e:
         print(f"\nError loading model: {e}")
-        return None
+        raise
 
 def generate_predictions():
     """
     Use the above loaded model to generate predictions on the test data
     """
     model = load_model()
-    if model is None:
-        print("Model could not be loaded. Exiting prediction generation.")
-        return None
 
     df = preprocess_data()
 
@@ -67,7 +66,63 @@ def generate_predictions():
     print("\nPrediction Results:")
     print(predictions_results.head(20))
 
+    load_predictions(predictions_results)
+
     return predictions_results
+
+# Function to load the predictions into the data warehouse
+def load_predictions(predictions_results):
+    """
+    Load the predictions into the data warehouse.
+    """
+
+    connection = get_connection()
+    if connection is None:
+        print("Database connection could not be established. Exiting prediction loading.")
+        return
+
+    try:
+        insert_query ="""
+            INSERT INTO ml_predictions_staging (
+                store_id,
+                sales_date,
+                weekly_sales,
+                predicted_weekly_sales,
+                prediction_error,
+                absolute_error,
+                model_version
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """
+
+        records=predictions_results[
+            [
+            "store_id",
+            "sales_date",
+            "weekly_sales",
+            "predicted_weekly_sales",
+            "prediction_error",
+            "absolute_error",
+            "model_version"
+            ]
+        ].itertuples(index=False, name=None)
+
+        with connection.cursor() as cursor:
+            cursor.executemany(insert_query, records)
+
+        connection.commit()
+
+        print("\nPredictions loaded into the data warehouse successfully."
+              f"\nTotal Records Inserted: {len(predictions_results)} INTO Table: ml_predictions_staging"
+              )
+    except Exception as e:
+        connection.rollback()
+        print(f"\nError occurred while loading predictions into the data warehouse: {e}")
+        raise
+    finally:
+        connection.close()
+        print("\nDatabase connection closed after loading predictions.")
+
+
 
 
 
