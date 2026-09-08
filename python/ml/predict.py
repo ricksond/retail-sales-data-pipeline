@@ -92,6 +92,13 @@ def load_predictions(predictions_results):
                 absolute_error,
                 model_version
             ) VALUES (%s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (store_id,sales_date,model_version)
+            DO UPDATE SET
+                weekly_sales=EXCLUDED.weekly_sales,
+                predicted_weekly_sales=EXCLUDED.predicted_weekly_sales,
+                prediction_error=EXCLUDED.prediction_error,
+                absolute_error=EXCLUDED.absolute_error,
+                prediction_timestamp=CURRENT_TIMESTAMP
         """
 
         records=predictions_results[
@@ -112,7 +119,7 @@ def load_predictions(predictions_results):
         connection.commit()
 
         print("\nPredictions loaded into the data warehouse successfully."
-              f"\nTotal Records Inserted: {len(predictions_results)} INTO Table: ml_predictions_staging"
+              f"\nTotal Records Processed: {len(predictions_results)} INTO Table: ml_predictions_staging"
               )
     except Exception as e:
         connection.rollback()
