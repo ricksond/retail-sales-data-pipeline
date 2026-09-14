@@ -6,19 +6,21 @@ import psycopg
 
 from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+PROJECT_ROOT=Path(__file__).resolve().parents[2]
 
-DATA_PATH=Path("data/rawdata/Walmart.csv")
+# Load environment variables
+load_dotenv(PROJECT_ROOT / ".env")
+
+DATA_PATH= PROJECT_ROOT / "data" / "rawdata" / "Walmart.csv"
 
 def get_connection():
     """Establish a connection to the PostgreSQL database."""
     return psycopg.connect(
-        host=os.getenv("POSTGRES_HOST"),
-        port=os.getenv("POSTGRES_PORT"),
-        dbname=os.getenv("POSTGRES_DB"),
-        user=os.getenv("POSTGRES_USER"),
-        password=os.getenv("POSTGRES_PASSWORD")
+        host=os.getenv("PROJECT_POSTGRES_HOST", os.getenv("POSTGRES_HOST")),
+        port=os.getenv("PROJECT_POSTGRES_PORT", os.getenv("POSTGRES_PORT")),
+        dbname=os.getenv("PROJECT_POSTGRES_DB", os.getenv("POSTGRES_DB")),
+        user=os.getenv("PROJECT_POSTGRES_USER", os.getenv("POSTGRES_USER")),
+        password=os.getenv("PROJECT_POSTGRES_PASSWORD", os.getenv("POSTGRES_PASSWORD"))
     )
 
 def validate_bronze():
@@ -130,7 +132,7 @@ def validate_bronze():
             print("Bronze table validation passed successfully.")
     except Exception as e:
         print(f"Bronze Validation Failed:{e}")
-        raise e
+        raise
     finally:
         connection.close() 
 

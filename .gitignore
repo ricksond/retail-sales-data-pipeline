@@ -224,3 +224,7 @@ airflow.cfg
 
 #joblib files or artifacts folder
 python/ml/artifacts/*.joblib
+
+#profiles files need to be excluded.
+profiles.yml
+.user.yml
