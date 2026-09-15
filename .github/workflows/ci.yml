@@ -52,4 +52,68 @@ jobs:
         run: |
           source .venv/bin/activate
           python -m compileall python
+  dbt-ci:
+    name: dbt CI
+    runs-on: ubuntu-latest
+    
+    steps:
+        - name: Checkout Repository
+          uses: actions/checkout@v4
+        
+        - name: Set Up Python
+          uses: actions/setup-python@v5
+          with:
+            python-version: "3.13"
+        
+        - name: Create Python Virtual Environment
+          run: python -m venv .venv
+        
+        - name: Install dbt Dependencies
+          run: |
+            source .venv/bin/activate
+            python -m pip install --upgrade pip 
+            python -m pip install dbt-core==1.12.0 dbt-postgres==1.11.0
+        
+        - name: Verify dbt Installation
+          run: | 
+            source .venv/bin/activate 
+            dbt --version
+
+        - name: Check dbt project 
+          run: | 
+            source .venv/bin/activate 
+            cd dbt/retail_warehouse 
+            dbt parse
+
+  airflow-ci:
+    name: Airflow CI
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: airflow
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Airflow image
+        run: docker compose build
+
+      - name: Initialize Airflow
+        run: docker compose up airflow-init
+
+      - name: Start Airflow services
+        run: docker compose up -d
+
+      - name: Check Airflow services
+        run: docker compose ps
+
+      - name: Check DAG import errors
+        run: |
+          docker compose exec -T airflow-worker airflow dags list-import-errors
+
+      - name: Stop Airflow services
+        if: always()
+        run: docker compose down
 
