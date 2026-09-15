@@ -144,9 +144,6 @@ retail-sales-data-warehouse/
 ├── data/
 │   └── raw/
 │
-├── tests/
-│   ├── etl/
-│   └── ml/
 │
 ├── docs/
 │   ├── architecture/
