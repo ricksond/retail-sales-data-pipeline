@@ -1,0 +1,55 @@
+name: Retail Sales Data Pipeline CI
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - main
+
+  push:
+    branches:
+      - feature/**
+
+jobs:
+  python-ci:
+    name: Python CI
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Create virtual environment
+        run: python -m venv .venv
+
+      - name: Activate virtual environment
+        run: |
+          source .venv/bin/activate
+          python --version
+          python -m pip --version
+
+      - name: Upgrade pip
+        run: |
+          source .venv/bin/activate
+          python -m pip install --upgrade pip
+
+      - name: Install project dependencies
+        run: |
+          source .venv/bin/activate
+          python -m pip install -r requirements.txt
+
+      - name: Verify Python imports
+        run: |
+          source .venv/bin/activate
+          python -c "import pandas; import numpy; import sklearn; import joblib; import psycopg; import dotenv"
+
+      - name: Check Python syntax
+        run: |
+          source .venv/bin/activate
+          python -m compileall python
+
