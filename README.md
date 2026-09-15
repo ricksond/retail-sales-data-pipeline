@@ -2,7 +2,7 @@
 
 ## 📌 Overview
 
-This project builds an end-to-end **retail sales data warehouse and analytics pipeline** using modern data engineering practices.
+This project builds an end-to-end **retail sales data warehouse and Analytics-ML pipeline** using modern data engineering practices.
 
 The goal is to transform raw retail sales data into clean, structured, and analytics-ready datasets through a **medallion architecture** consisting of Bronze, Silver, and Gold layers.
 
@@ -16,6 +16,7 @@ The project focuses on building a reliable data pipeline from raw data ingestion
 * Use **Python** for data ingestion and processing.
 * Use **dbt** for SQL-based data transformation and modeling.
 * Use **Apache Airflow** to orchestrate and schedule pipeline workflows.
+* Train an **ML Model and Generate Predictions** to be stored in the data warehouse.
 * Apply data quality and transformation practices to create reliable analytical datasets.
 * Maintain the project using **Git and GitHub** for version control.
 * Create a foundation for downstream analytics and machine learning applications.
@@ -243,7 +244,6 @@ Planned improvements include:
 * Improving pipeline monitoring and logging.
 * Expanding CI/CD automation.
 * Adding dashboards for business analysis.
-* Using Gold-layer datasets for predictive modeling.
 * Improving pipeline scalability and reliability.
 
 ## 📚 Key Learning Outcomes
@@ -261,6 +261,8 @@ Through this project, I am developing practical experience with:
 * Data quality
 * Git-based development workflows
 * CI/CD for data pipelines
+* Database and ODBC connection workflows for ML modeling
+* Clean Exception Handled Code
 
 ## 👤 Author
 
