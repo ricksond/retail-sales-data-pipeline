@@ -4,10 +4,16 @@ import pandas as pd
 from dotenv import load_dotenv
 import psycopg
 
-#load environment variables
-load_dotenv()
 
-DATA_PATH = Path("data/rawdata/Walmart.csv")
+#DATA_PATH = Path("data/rawdata/Walmart.csv")
+PROJECT_ROOT=Path(__file__).resolve().parents[2]
+
+#Load environment variables
+load_dotenv(PROJECT_ROOT / ".env")
+
+DATA_PATH=PROJECT_ROOT / "data" / "rawdata" / "Walmart.csv"
+
+
 
 def load_bronze():
     #Extract the data from the source file
@@ -16,11 +22,11 @@ def load_bronze():
     print(f"Extracted {len(df)} records from source system.")
     #establishing the connection to the database
     connection=psycopg.connect(
-        host=os.getenv("POSTGRES_HOST"),
-        port=os.getenv("POSTGRES_PORT"),
-        dbname=os.getenv("POSTGRES_DB"),
-        user=os.getenv("POSTGRES_USER"),
-        password=os.getenv("POSTGRES_PASSWORD")
+        host=os.getenv('PROJECT_POSTGRES_HOST','POSTGRES_HOST'),
+        port=os.getenv('PROJECT_POSTGRES_PORT','POSTGRES_PORT'),
+        dbname=os.getenv('PROJECT_POSTGRES_DB','POSTGRES_DB'),
+        user=os.getenv('PROJECT_POSTGRES_USER','POSTGRES_USER'),
+        password=os.getenv('PROJECT_POSTGRES_PASSWORD','POSTGRES_PASSWORD')
     )
 
     try:

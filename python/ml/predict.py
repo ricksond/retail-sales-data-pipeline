@@ -1,4 +1,5 @@
 import joblib
+from pathlib import Path
 
 from python.ml.preprocessing import (
     preprocess_data,
@@ -8,7 +9,11 @@ from python.ml.preprocessing import (
 
 from python.utils.database import get_connection 
 
-MODEL_PATH="python/ml/artifacts/random_forest_model.joblib"
+PROJECT_ROOT=Path(__file__).resolve().parents[2]
+
+MODEL_PATH= PROJECT_ROOT / "python" / "ml" / "artifacts" / "random_forest_model.joblib"
+
+#MODEL_PATH="python/ml/artifacts/random_forest_model.joblib"
 
 def load_model():
     """

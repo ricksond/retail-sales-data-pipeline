@@ -1,6 +1,7 @@
 import pandas as pd
 
-from python.utils.odbc_connection import get_odbc_connection
+#from python.utils.odbc_connection import get_odbc_connection
+from python.utils.database import get_connection
 
 
 def load_ml_dataset():
@@ -17,7 +18,8 @@ def load_ml_dataset():
     connection= None
 
     try:
-        connection=get_odbc_connection()
+        #connection=get_odbc_connection()
+        connection=get_connection()
 
         df=pd.read_sql(query,connection)
 
@@ -47,4 +49,4 @@ if __name__== "__main__":
     print(df.columns.tolist())
 
     print("\n First 5 Rows:")
-    print(df.head)
+    print(df.head())

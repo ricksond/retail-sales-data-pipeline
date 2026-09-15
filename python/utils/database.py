@@ -1,10 +1,13 @@
 import os
-
+from pathlib import Path
 import psycopg 
 from dotenv import load_dotenv
 
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+
 #function to load the environment variables
-load_dotenv()
+load_dotenv(PROJECT_ROOT / ".env")
 
 
 def get_connection():
@@ -14,11 +17,11 @@ def get_connection():
 #establishing the connection to the database
     try:
         connection=psycopg.connect(
-            host=os.getenv("POSTGRES_HOST"),
-            port=os.getenv("POSTGRES_PORT"),
-            dbname=os.getenv("POSTGRES_DB"),
-            user=os.getenv("POSTGRES_USER"),
-            password=os.getenv("POSTGRES_PASSWORD")
+            host=os.getenv("PROJECT_POSTGRES_HOST", os.getenv("POSTGRES_HOST")),
+            port=os.getenv("PROJECT_POSTGRES_PORT", os.getenv("POSTGRES_PORT")),
+            dbname=os.getenv("PROJECT_POSTGRES_DB", os.getenv("POSTGRES_DB")),
+            user=os.getenv("PROJECT_POSTGRES_USER", os.getenv("POSTGRES_USER")),
+            password=os.getenv("PROJECT_POSTGRES_PASSWORD", os.getenv("POSTGRES_PASSWORD"))
         )
 
         print("Connection to the database established successfully.")
