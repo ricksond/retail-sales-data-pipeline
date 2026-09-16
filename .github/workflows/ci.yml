@@ -72,18 +72,35 @@ jobs:
           run: |
             source .venv/bin/activate
             python -m pip install --upgrade pip 
-            python -m pip install dbt-core==1.12.0 dbt-postgres==1.11.0
+            python -m pip install dbt-postgres
         
         - name: Verify dbt Installation
           run: | 
             source .venv/bin/activate 
             dbt --version
+        - name: Create CI dbt profile
+          run: |
+            mkdir -p .ci/dbt
+            cat > .ci/dbt/profiles.yml <<'EOF'
+            retail_warehouse: 
+              outputs: 
+                dev: 
+                  type: postgres 
+                  host: localhost 
+                  port: 5432 
+                  user: ci_user 
+                  password: ci_password 
+                  dbname: retail_warehouse 
+                  schema: silver 
+                  threads: 4 
+                  target: dev 
+              EOF
 
         - name: Check dbt project 
           run: | 
             source .venv/bin/activate 
             cd dbt/retail_warehouse 
-            dbt parse
+            dbt parse --profiles-dir ../../.ci/dbt
 
   airflow-ci:
     name: Airflow CI
