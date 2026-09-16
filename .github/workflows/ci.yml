@@ -116,6 +116,19 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      
+      - name: Create Airflow CI environment
+        run: |
+          printf '%s\n' \
+            'AIRFLOW_UID=50000' \
+            'FERNET_KEY=ZmFrZV9jaV9mZXJuZXRfa2V5XzMyX2J5dGVzX18=' \
+            'AIRFLOW__API_AUTH__JWT_SECRET=ci-airflow-jwt-secret' \
+            'PROJECT_POSTGRES_HOST=host.docker.internal' \
+            'PROJECT_POSTGRES_PORT=5432' \
+            'PROJECT_POSTGRES_DB=retail_warehouse' \
+            'PROJECT_POSTGRES_USER=ci_user' \
+            'PROJECT_POSTGRES_PASSWORD=ci_password' \
+            > .env
 
       - name: Build Airflow image
         run: docker compose build
