@@ -52,4 +52,101 @@ jobs:
         run: |
           source .venv/bin/activate
           python -m compileall python
+  dbt-ci:
+    needs: python-ci
+    name: dbt CI
+    runs-on: ubuntu-latest
+    
+    steps:
+        - name: Checkout Repository
+          uses: actions/checkout@v4
+        
+        - name: Set Up Python
+          uses: actions/setup-python@v5
+          with:
+            python-version: "3.13"
+        
+        - name: Create Python Virtual Environment
+          run: python -m venv .venv
+        
+        - name: Install dbt Dependencies
+          run: |
+            source .venv/bin/activate
+            python -m pip install --upgrade pip 
+            python -m pip install dbt-postgres
+        
+        - name: Verify dbt Installation
+          run: | 
+            source .venv/bin/activate 
+            dbt --version
+
+        - name: Create CI dbt profile
+          run: |
+            mkdir -p .ci/dbt
+            printf '%s\n' \
+              'retail_warehouse:' \
+              '  outputs:' \
+              '    dev:' \
+              '      type: postgres' \
+              '      host: localhost' \
+              '      port: 5432' \
+              '      user: ci_user' \
+              '      password: ci_password' \
+              '      dbname: retail_warehouse' \
+              '      schema: silver' \
+              '      threads: 4' \
+              '  target: dev' \
+              > .ci/dbt/profiles.yml
+
+        - name: Check dbt project 
+          run: | 
+            source .venv/bin/activate 
+            cd dbt/retail_warehouse 
+            dbt parse --profiles-dir ../../.ci/dbt
+
+  airflow-ci:
+    needs: dbt-ci
+    name: Airflow CI
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: airflow
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Create Airflow CI environment
+        run: |
+          printf '%s\n' \
+            'AIRFLOW_UID=50000' \
+            'FERNET_KEY=ZmFrZV9jaV9mZXJuZXRfa2V5XzMyX2J5dGVzX18=' \
+            'AIRFLOW__API_AUTH__JWT_SECRET=ci-airflow-jwt-secret' \
+            'PROJECT_POSTGRES_HOST=host.docker.internal' \
+            'PROJECT_POSTGRES_PORT=5432' \
+            'PROJECT_POSTGRES_DB=retail_warehouse' \
+            'PROJECT_POSTGRES_USER=ci_user' \
+            'PROJECT_POSTGRES_PASSWORD=ci_password' \
+            > .env
+
+      - name: Build Airflow image
+        run: docker compose build
+
+      - name: Initialize Airflow
+        run: docker compose up airflow-init
+
+      - name: Start Airflow services
+        run: docker compose up -d
+
+      - name: Check Airflow services
+        run: docker compose ps
+
+      - name: Check DAG import errors
+        run: |
+          docker compose exec -T airflow-worker airflow dags list-import-errors
+
+      - name: Stop Airflow services
+        if: always()
+        run: docker compose down
 
