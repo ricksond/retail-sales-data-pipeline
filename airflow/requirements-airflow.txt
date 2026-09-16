@@ -1,0 +1,7 @@
+pandas
+psycopg
+python-dotenv
+dbt-postgres
+numpy
+scikit-learn
+joblib

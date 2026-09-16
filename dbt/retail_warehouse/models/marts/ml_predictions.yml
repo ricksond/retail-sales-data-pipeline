@@ -1,0 +1,42 @@
+version: 2
+
+models:
+  - name: ml_predictions
+    description: "Gold-layer machine learning predictions for weekly store sales."
+
+    columns:
+      - name: store_id
+        description: "Unique store identifier."
+        tests:
+          - not_null
+
+      - name: sales_date
+        description: "Week associated with the sales prediction."
+        tests:
+          - not_null
+
+      - name: weekly_sales
+        description: "Actual weekly sales amount."
+        tests:
+          - not_null
+
+      - name: predicted_weekly_sales
+        description: "Weekly sales amount predicted by the machine learning model."
+        tests:
+          - not_null
+
+      - name: prediction_error
+        description: "Difference between actual and predicted weekly sales."
+
+      - name: absolute_error
+        description: "Absolute difference between actual and predicted weekly sales."
+
+      - name: model_version
+        description: "Version identifier for the machine learning model."
+        tests:
+          - not_null
+
+      - name: prediction_timestamp
+        description: "Timestamp when the prediction was loaded into the data warehouse."
+        tests:
+          - not_null
