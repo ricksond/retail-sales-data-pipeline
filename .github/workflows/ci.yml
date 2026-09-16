@@ -79,23 +79,24 @@ jobs:
           run: | 
             source .venv/bin/activate 
             dbt --version
+
         - name: Create CI dbt profile
           run: |
             mkdir -p .ci/dbt
-            cat > .ci/dbt/profiles.yml <<'EOF'
-            retail_warehouse: 
-              outputs: 
-                dev: 
-                  type: postgres 
-                  host: localhost 
-                  port: 5432 
-                  user: ci_user 
-                  password: ci_password 
-                  dbname: retail_warehouse 
-                  schema: silver 
-                  threads: 4 
-                  target: dev 
-              EOF
+            printf '%s\n' \
+              'retail_warehouse:' \
+              '  outputs:' \
+              '    dev:' \
+              '      type: postgres' \
+              '      host: localhost' \
+              '      port: 5432' \
+              '      user: ci_user' \
+              '      password: ci_password' \
+              '      dbname: retail_warehouse' \
+              '      schema: silver' \
+              '      threads: 4' \
+              '  target: dev' \
+              > .ci/dbt/profiles.yml
 
         - name: Check dbt project 
           run: | 
